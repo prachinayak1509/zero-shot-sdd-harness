@@ -13,11 +13,12 @@ A capability is a single, discrete action or behavior the agent performs. Exampl
 
 ## Capabilities in This Project
 
-<!-- FILL IN: List capabilities here as they are defined. Each entry links to its spec file (no number prefix). -->
-
-| Capability | File |
-|-----------|------|
-| <!-- name --> | [name.md](name.md) |
+| Capability | File | Phase |
+|-----------|------|-------|
+| Ingest & profile a spreadsheet | [ingest_and_profile.md](ingest_and_profile.md) | 1 |
+| Adaptive analysis loop (coded answer in a sandbox) | [adaptive_analysis_loop.md](adaptive_analysis_loop.md) | 1 |
+| Rich answer presentation (charts, tables, follow-ups, quality flags) | [rich_answer_presentation.md](rich_answer_presentation.md) | 2 |
+| Persistent workspace (sessions, multi-file, recipes, cost, trace) | [persistent_workspace.md](persistent_workspace.md) | 3 |
 
 ## How to Add a New Capability
 
