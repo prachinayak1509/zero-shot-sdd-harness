@@ -1,25 +1,125 @@
-from graph.agent import agentic_ai
+"""Graph runner — entry point invoked by the API (spec/api.md ask response).
+
+``run_agent`` builds the initial ``AgentState``, invokes the compiled graph, and
+returns the ask-response dict. It then persists the ``QuestionAudit`` update and
+the assistant ``Message`` defensively — model imports and DB writes are wrapped
+in try/except so a persistence failure never blocks the answer from being
+returned. The api-routes slice creates the ``QuestionAudit`` row BEFORE calling
+``run_agent`` and passes ``audit_id``; this runner UPDATES that row.
+"""
+
+import json
+import logging
+
+from graph.agent import compiled_graph
 from graph.state import AgentState
-from db.session import create_db_session, init_db
-from db.models import RunRow
+from db.session import create_db_session
+
+logger = logging.getLogger("agent.runner")
 
 
-def run_agent(input_text: str) -> str:
-    init_db()
+def run_agent(
+    *,
+    dataset_id: int,
+    question: str,
+    conversation_id: int,
+    profile: dict,
+    dataset_paths: dict[str, str],
+    history: list[dict],
+    audit_id: int,
+    step_budget: int = 5,
+) -> dict:
+    """Run the data-analysis agent for one question and return the ask payload."""
+    initial: AgentState = {
+        "run_id": audit_id,
+        "dataset_id": dataset_id,
+        "conversation_id": conversation_id,
+        "question": question,
+        "profile": profile or {},
+        "dataset_paths": dataset_paths or {},
+        "history": history or [],
+        "effort": None,
+        "approach": None,
+        "code": None,
+        "last_result": None,
+        "last_result_repr": None,
+        "last_error": None,
+        "steps": [],
+        "step_count": 0,
+        "step_budget": step_budget,
+        "tokens_used": 0,
+        "answer": None,
+        "final_code": None,
+        "final_result_repr": None,
+        "error": None,
+        "checkpoint": None,
+    }
 
-    with create_db_session() as session:
-        run = RunRow(input_text=input_text)
-        session.add(run)
-        session.flush()
-        run_id = run.id
+    final = compiled_graph.invoke(initial)
 
-    initial: AgentState = {"run_id": run_id, "input_text": input_text, "error": None}
-    final = agentic_ai.invoke(initial)
+    fatal = final.get("error")
+    status = "failed" if fatal else "completed"
+    answer = final.get("answer")
+    if answer is None and fatal:
+        answer = "The agent could not complete this question."
 
-    with create_db_session() as session:
-        run = session.get(RunRow, run_id)
-        run.status = final.get("status", "completed")
-        run.output_text = final.get("output_text")
-        run.error_message = final.get("error")
+    result = {
+        "conversation_id": conversation_id,
+        "audit_id": audit_id,
+        "answer": answer,
+        "code": final.get("final_code") or final.get("code"),
+        "result_repr": final.get("final_result_repr") or final.get("last_result_repr"),
+        "effort": final.get("effort"),
+        "step_count": final.get("step_count") or 0,
+        "status": status,
+        "tokens_used": final.get("tokens_used") or 0,
+        "error": fatal,
+    }
 
-    return run_id
+    _persist(final, result)
+    return result
+
+
+def _persist(final: AgentState, result: dict) -> None:
+    """Defensively update QuestionAudit and append the assistant Message.
+
+    Models are imported here (not at module top) so the graph package never
+    couples to the db-schema slice's import timing. Any failure is logged, never
+    raised.
+    """
+    try:
+        from db.models import QuestionAudit, Message  # noqa: PLC0415
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("persistence skipped — models unavailable: %s", exc)
+        return
+
+    try:
+        with create_db_session() as session:
+            audit = session.get(QuestionAudit, result["audit_id"])
+            if audit is not None:
+                _set_if_has(audit, "status", result["status"])
+                _set_if_has(audit, "step_count", result["step_count"])
+                _set_if_has(audit, "tokens_used", result["tokens_used"])
+                _set_if_has(audit, "final_code", result["code"])
+                _set_if_has(audit, "final_result_repr", result["result_repr"])
+                _set_if_has(audit, "effort", result["effort"])
+                _set_if_has(audit, "error_message", result["error"])
+                steps = final.get("steps") or []
+                _set_if_has(audit, "steps", json.dumps(steps, default=str))
+
+            msg = Message(
+                conversation_id=result["conversation_id"],
+                role="assistant",
+                content=result["answer"] or "",
+            )
+            _set_if_has(msg, "audit_id", result["audit_id"])
+            session.add(msg)
+    except Exception as exc:  # noqa: BLE001 — never crash the answer on persist
+        logger.warning("persistence failed audit_id=%s: %s", result.get("audit_id"), exc)
+
+
+def _set_if_has(obj, attr: str, value) -> None:
+    """Set an attribute only if the model defines that column (defensive against
+    the exact column set the db-schema slice ships)."""
+    if hasattr(obj, attr):
+        setattr(obj, attr, value)

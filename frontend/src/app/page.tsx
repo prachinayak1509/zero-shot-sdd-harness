@@ -1,77 +1,126 @@
 'use client'
 
 import { useState } from 'react'
+import { ApiError, askQuestion, uploadDataset } from '@/lib/api'
+import type { ChatTurn, Dataset } from '@/lib/types'
+import { Sidebar } from '@/components/Sidebar'
+import { UploadDropzone } from '@/components/UploadDropzone'
+import { ProfilePanel } from '@/components/ProfilePanel'
+import { ChatTranscript } from '@/components/ChatTranscript'
+import { QuestionInput } from '@/components/QuestionInput'
+import { StubPanel } from '@/components/StubPanel'
 
 export default function Home() {
-  const [input, setInput] = useState('')
-  const [result, setResult] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [dataset, setDataset] = useState<Dataset | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!input.trim()) return
-    setLoading(true)
-    setError(null)
-    setResult(null)
+  const [turns, setTurns] = useState<ChatTurn[]>([])
+  const [conversationId, setConversationId] = useState<number | null>(null)
+  const [asking, setAsking] = useState(false)
+
+  async function handleUpload(file: File) {
+    setUploading(true)
+    setUploadError(null)
     try {
-      const res = await fetch('/runs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input_text: input }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.detail?.message ?? `Request failed (${res.status})`)
-      } else if (data.data?.error) {
-        setError(data.data.error)
-      } else {
-        setResult(data.data.output_text)
-      }
-    } catch {
-      setError('Network error — is the server running?')
+      const ds = await uploadDataset(file)
+      setDataset(ds)
+      // New dataset → fresh conversation + transcript.
+      setTurns([])
+      setConversationId(null)
+    } catch (err) {
+      setUploadError(err instanceof ApiError ? err.message : 'Upload failed. Please try again.')
     } finally {
-      setLoading(false)
+      setUploading(false)
+    }
+  }
+
+  async function handleAsk(question: string) {
+    if (!dataset) return
+    const turnId = `${Date.now()}-${Math.random().toString(36).slice(2)}`
+    setTurns((prev) => [
+      ...prev,
+      { id: turnId, question, result: null, error: null, pending: true },
+    ])
+    setAsking(true)
+    try {
+      const result = await askQuestion(dataset.id, question, conversationId)
+      setConversationId(result.conversation_id)
+      setTurns((prev) =>
+        prev.map((t) =>
+          t.id === turnId ? { ...t, result, pending: false, error: null } : t,
+        ),
+      )
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Something went wrong.'
+      setTurns((prev) =>
+        prev.map((t) => (t.id === turnId ? { ...t, pending: false, error: message } : t)),
+      )
+    } finally {
+      setAsking(false)
     }
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-16">
-      <h1 className="mb-8 text-3xl font-bold tracking-tight">Agent</h1>
+    <div className="flex min-h-screen">
+      <Sidebar />
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <textarea
-          className="w-full rounded-lg border border-gray-300 p-3 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          rows={4}
-          placeholder="Enter text to transform…"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          disabled={loading}
-        />
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-        >
-          {loading ? 'Running…' : 'Run'}
-        </button>
-      </form>
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Header */}
+        <header className="flex items-center justify-between border-b border-gray-200 bg-white/70 px-6 py-3 backdrop-blur">
+          <div>
+            <h1 className="text-lg font-semibold tracking-tight text-gray-900">
+              Analysis Workspace
+            </h1>
+            <p className="text-xs text-gray-500">
+              Upload a CSV, then ask questions in plain English.
+            </p>
+          </div>
+          {/* Phase 3 stub: add file / sheet */}
+          <StubPanel title="+ Add file / sheet" phase="Phase 3" className="hidden sm:block" />
+        </header>
 
-      {error && (
-        <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {error}
+        <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-5 px-4 py-6 sm:px-6">
+          {/* Upload */}
+          <UploadDropzone
+            onFile={handleUpload}
+            uploading={uploading}
+            error={uploadError}
+            loadedName={dataset?.name ?? null}
+          />
+
+          {/* Profile (real data once uploaded) */}
+          {dataset && <ProfilePanel dataset={dataset} />}
+
+          {/* Phase 2 tab stubs (charts / table) */}
+          {dataset && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <StubPanel
+                title="Charts tab"
+                phase="Phase 2"
+                description="Interactive charts will render here."
+              />
+              <StubPanel
+                title="Result Table tab"
+                phase="Phase 2"
+                description="Aggregated result table view."
+              />
+            </div>
+          )}
+
+          {/* Chat transcript */}
+          <div className="flex-1">
+            <ChatTranscript turns={turns} hasDataset={!!dataset} />
+          </div>
+        </main>
+
+        {/* Question input pinned to bottom of the column */}
+        <div className="sticky bottom-0 border-t border-gray-200 bg-white/80 px-4 py-3 backdrop-blur sm:px-6">
+          <div className="mx-auto w-full max-w-4xl">
+            <QuestionInput onSubmit={handleAsk} disabled={!dataset} busy={asking} />
+          </div>
         </div>
-      )}
-
-      {result && (
-        <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4 text-sm whitespace-pre-wrap shadow-sm">
-          {result}
-        </div>
-      )}
-
-      {!result && !error && !loading && (
-        <p className="mt-10 text-center text-sm text-gray-400">Results will appear here.</p>
-      )}
-    </main>
+      </div>
+    </div>
   )
 }

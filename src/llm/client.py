@@ -1,7 +1,7 @@
 from config.settings import get_settings
 
 
-def _make_provider():
+def _make_provider(model: str | None = None):
     s = get_settings()
     provider = s.llm_provider
 
@@ -17,19 +17,21 @@ def _make_provider():
                 "AGENT_GEMINI_API_KEY in .env, or set AGENT_LLM_PROVIDER explicitly."
             )
 
+    resolved_model = model if model is not None else s.llm_model
+
     if provider == "anthropic":
         from llm.providers.anthropic import AnthropicProvider
-        return AnthropicProvider(api_key=s.anthropic_api_key, model=s.llm_model)
+        return AnthropicProvider(api_key=s.anthropic_api_key, model=resolved_model)
     if provider == "gemini":
         from llm.providers.gemini import GeminiProvider
-        return GeminiProvider(api_key=s.gemini_api_key, model=s.llm_model)
+        return GeminiProvider(api_key=s.gemini_api_key, model=resolved_model)
 
     raise RuntimeError(f"Unknown LLM provider: {provider!r}. Supported: anthropic, gemini")
 
 
 class LLMClient:
-    def __init__(self) -> None:
-        self._provider = _make_provider()
+    def __init__(self, model: str | None = None) -> None:
+        self._provider = _make_provider(model)
 
     def call_model(self, prompt: str, *, system: str | None = None) -> str:
         return self._provider.call_model(prompt, system=system)

@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from collections.abc import Generator
 
-from sqlalchemy import create_engine, Engine
+from sqlalchemy import create_engine, event, Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 _engine: Engine | None = None
@@ -12,7 +12,24 @@ def _get_engine() -> Engine:
     global _engine
     if _engine is None:
         from config.settings import get_settings
-        _engine = create_engine(get_settings().database_url, echo=False)
+        url = get_settings().database_url
+        if url.startswith("sqlite"):
+            _engine = create_engine(
+                url,
+                echo=False,
+                connect_args={"check_same_thread": False, "timeout": 30},
+            )
+
+            @event.listens_for(_engine, "connect")
+            def _set_sqlite_pragma(dbapi_connection, connection_record):
+                cursor = dbapi_connection.cursor()
+                try:
+                    cursor.execute("PRAGMA journal_mode=WAL;")
+                    cursor.execute("PRAGMA busy_timeout=30000;")
+                finally:
+                    cursor.close()
+        else:
+            _engine = create_engine(url, echo=False)
     return _engine
 
 
