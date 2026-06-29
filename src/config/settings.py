@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     # LLM provider — auto-detected from whichever key is set if left blank
     llm_provider: str = Field(default="")   # "anthropic" | "gemini"
     llm_model: str = Field(default="")      # uses provider default when blank
+    llm_model_fast: str = Field(default="gemini-2.5-flash")  # cheap plan path
 
     # Provider keys — set exactly one
     anthropic_api_key: str = Field(default="")

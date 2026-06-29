@@ -1,2 +1,6 @@
+onlyBuiltDependencies:
+  - esbuild
+enablePrePostScripts: true
+verifyDepsBeforeRun: false
 allowBuilds:
-  sharp: false
+  esbuild: set this to true or false
