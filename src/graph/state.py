@@ -24,6 +24,7 @@ class AgentState(TypedDict, total=False):
     code: str | None                     # latest generated pandas — write_code
     last_result: Any | None              # latest sandbox result value — run_code
     last_result_repr: str | None         # printable repr — run_code
+    last_table: dict | None              # latest sandbox {columns, rows} table — run_code
     last_error: str | None               # latest sandbox error (loop-local)
     steps: list[dict]                    # ordered trace
     step_count: int                      # incremented each run_code cycle
@@ -34,6 +35,11 @@ class AgentState(TypedDict, total=False):
     answer: str | None                   # final prose answer — finalize
     final_code: str | None               # code that produced the answer
     final_result_repr: str | None        # raw result shown to the user
+
+    # Phase 2 — rich answer presentation (all optional, set by finalize)
+    chart_spec: dict | None              # agent-chosen chart encodings (or None)
+    table: dict | None                   # {columns, rows} aggregated result table
+    follow_ups: list[str] | None         # 2–3 suggested next questions
 
     # Control
     error: str | None                    # FATAL failure → handle_error

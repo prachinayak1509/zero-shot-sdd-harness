@@ -98,6 +98,77 @@ def _jsonable(value):
     return None
 
 
+_TABLE_MAX_ROWS = 200
+
+
+def _serialize_table(value):
+    """Deterministically convert a sandbox ``result`` into a ``{columns, rows}``
+    table where it makes sense, capped at ``_TABLE_MAX_ROWS`` rows.
+
+    - DataFrame      -> the (reset-index) columns + row matrix
+    - Series         -> a 2-column [index_name, value_name] table
+    - dict-of-scalars-> a 2-col key/value table
+    - scalar / other -> None (the caller treats this as "no table")
+
+    Never raises — returns None on any failure so enrichment degrades quietly.
+    """
+    try:
+        import pandas as pd
+
+        def _cell(v):
+            # JSON-safe scalar for each cell (NaN -> None, numpy -> python).
+            if v is None:
+                return None
+            try:
+                if isinstance(v, float) and (v != v):  # NaN
+                    return None
+            except Exception:
+                pass
+            if hasattr(v, "item"):
+                try:
+                    v = v.item()
+                except Exception:
+                    pass
+            j = _jsonable(v)
+            return j if j is not None else str(v)
+
+        if isinstance(value, pd.DataFrame):
+            df = value
+            # Surface a meaningful index (e.g. groupby key) as a real column.
+            if df.index.name is not None or not isinstance(
+                df.index, pd.RangeIndex
+            ):
+                df = df.reset_index()
+            df = df.head(_TABLE_MAX_ROWS)
+            columns = [str(c) for c in df.columns.tolist()]
+            rows = [[_cell(v) for v in rec] for rec in df.to_numpy().tolist()]
+            return {"columns": columns, "rows": rows}
+
+        if isinstance(value, pd.Series):
+            s = value.head(_TABLE_MAX_ROWS)
+            index_name = str(s.index.name) if s.index.name is not None else "index"
+            value_name = str(s.name) if s.name is not None else "value"
+            columns = [index_name, value_name]
+            rows = [[_cell(k), _cell(v)] for k, v in s.items()]
+            return {"columns": columns, "rows": rows}
+
+        if isinstance(value, dict):
+            items = list(value.items())[:_TABLE_MAX_ROWS]
+            # Only a flat dict-of-scalars becomes a key/value table.
+            if items and all(
+                not isinstance(v, (dict, list, tuple)) for _, v in items
+            ):
+                return {
+                    "columns": ["key", "value"],
+                    "rows": [[_cell(k), _cell(v)] for k, v in items],
+                }
+            return None
+
+        return None
+    except Exception:
+        return None
+
+
 def _run(payload: dict) -> dict:
     import pandas as pd
 
@@ -114,6 +185,7 @@ def _run(payload: dict) -> dict:
                 "ok": False,
                 "result_repr": None,
                 "result_value": None,
+                "table": None,
                 "stdout": "",
                 "error": f"failed to load dataset '{name}': {exc}",
                 "traceback": traceback.format_exc(),
@@ -133,6 +205,7 @@ def _run(payload: dict) -> dict:
             "ok": False,
             "result_repr": None,
             "result_value": None,
+            "table": None,
             "stdout": stdout_buf.getvalue(),
             "error": str(exc),
             "traceback": traceback.format_exc(),
@@ -145,6 +218,7 @@ def _run(payload: dict) -> dict:
             "ok": False,
             "result_repr": None,
             "result_value": None,
+            "table": None,
             "stdout": stdout_buf.getvalue(),
             "error": "generated code did not assign a 'result' variable",
             "traceback": None,
@@ -155,6 +229,7 @@ def _run(payload: dict) -> dict:
         "ok": True,
         "result_repr": str(result),
         "result_value": _jsonable(result),
+        "table": _serialize_table(result),
         "stdout": stdout_buf.getvalue(),
         "error": None,
         "traceback": None,
@@ -170,6 +245,7 @@ def main() -> None:
             "ok": False,
             "result_repr": None,
             "result_value": None,
+            "table": None,
             "stdout": "",
             "error": f"invalid payload: {exc}",
             "traceback": None,
@@ -182,6 +258,7 @@ def main() -> None:
                 "ok": False,
                 "result_repr": None,
                 "result_value": None,
+                "table": None,
                 "stdout": "",
                 "error": str(exc),
                 "traceback": traceback.format_exc(),

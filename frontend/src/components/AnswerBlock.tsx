@@ -1,16 +1,27 @@
 // Renders one assistant answer: prose answer, a step counter, the collapsible
-// code panel, and the Phase-2 stubs (charts / table / follow-ups). When the
-// run failed it renders a best-effort error card that STILL shows code/result.
+// code panel, then the rich Phase-2 surfaces — the agent-chosen chart, the
+// aggregated result table, and clickable follow-up chips. When the run failed it
+// renders a best-effort error card that STILL shows code/result.
 
 import type { AskResult } from '@/lib/types'
 import { CodePanel } from './CodePanel'
-import { StubPanel } from './StubPanel'
+import { Charts } from './Charts'
+import { ResultTable } from './ResultTable'
+import { FollowUps } from './FollowUps'
 
-export function AnswerBlock({ result }: { result: AskResult }) {
+export function AnswerBlock({
+  result,
+  onAskFollowUp,
+  followUpsDisabled = false,
+}: {
+  result: AskResult
+  onAskFollowUp: (question: string) => void
+  followUpsDisabled?: boolean
+}) {
   const failed = result.status === 'failed'
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-center gap-2">
         <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-500">
           {result.step_count} step{result.step_count === 1 ? '' : 's'}
@@ -47,16 +58,18 @@ export function AnswerBlock({ result }: { result: AskResult }) {
         <CodePanel code={result.code} resultRepr={result.result_repr} />
       )}
 
-      {/* Phase 2 stubs */}
-      <div className="grid gap-2 pt-1 sm:grid-cols-2">
-        <StubPanel title="Chart" phase="Phase 2" description="Agent-chosen interactive chart." />
-        <StubPanel title="Result table" phase="Phase 2" description="Aggregated result rows." />
-      </div>
-      <StubPanel
-        title="Suggested follow-ups"
-        phase="Phase 2"
-        description="Smart next-question chips."
-      />
+      {/* Rich Phase-2 surfaces — chart, table, follow-ups. */}
+      {!failed && (
+        <>
+          <Charts chartSpec={result.chart_spec} table={result.table} />
+          <ResultTable table={result.table} />
+          <FollowUps
+            followUps={result.follow_ups}
+            onAskFollowUp={onAskFollowUp}
+            disabled={followUpsDisabled}
+          />
+        </>
+      )}
     </div>
   )
 }

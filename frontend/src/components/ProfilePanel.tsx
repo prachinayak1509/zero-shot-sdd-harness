@@ -2,7 +2,7 @@
 // row count, per-column dtype/min/max/null_count, plus an optional sample table.
 
 import type { Dataset } from '@/lib/types'
-import { StubPill } from './StubPanel'
+import { ColumnQualityBadges, QualityNotes } from './QualityBadges'
 
 function fmt(v: string | number | null | undefined): string {
   if (v === null || v === undefined) return '—'
@@ -25,10 +25,6 @@ export function ProfilePanel({ dataset }: { dataset: Dataset }) {
             {dataset.row_count.toLocaleString()} row{dataset.row_count === 1 ? '' : 's'}
           </p>
         </div>
-        {/* Phase 2 stub: data-quality badges */}
-        <div className="flex items-center gap-1.5 opacity-60">
-          <StubPill label="Quality badges · Phase 2" />
-        </div>
       </div>
 
       {/* Column profile table — REAL data */}
@@ -41,6 +37,7 @@ export function ProfilePanel({ dataset }: { dataset: Dataset }) {
               <th className="px-3 py-2 font-medium">Min</th>
               <th className="px-3 py-2 font-medium">Max</th>
               <th className="px-3 py-2 font-medium">Nulls</th>
+              <th className="px-3 py-2 font-medium">Quality</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -55,11 +52,22 @@ export function ProfilePanel({ dataset }: { dataset: Dataset }) {
                 <td className="px-3 py-2 text-gray-600">{fmt(col.min)}</td>
                 <td className="px-3 py-2 text-gray-600">{fmt(col.max)}</td>
                 <td className="px-3 py-2 text-gray-600">{col.null_count.toLocaleString()}</td>
+                <td className="px-3 py-2">
+                  <ColumnQualityBadges col={col} />
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Root data-quality summary — real values from the profile */}
+      {profile.quality && (
+        <QualityNotes
+          notes={profile.quality.notes ?? []}
+          totalFlags={profile.quality.total_flags ?? 0}
+        />
+      )}
 
       {/* Sample rows — REAL data when present */}
       {sample.length > 0 && (

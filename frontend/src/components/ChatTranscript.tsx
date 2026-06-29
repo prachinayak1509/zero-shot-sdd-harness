@@ -7,9 +7,11 @@ import { AnswerBlock } from './AnswerBlock'
 interface ChatTranscriptProps {
   turns: ChatTurn[]
   hasDataset: boolean
+  onAskFollowUp: (question: string) => void
+  asking: boolean
 }
 
-export function ChatTranscript({ turns, hasDataset }: ChatTranscriptProps) {
+export function ChatTranscript({ turns, hasDataset, onAskFollowUp, asking }: ChatTranscriptProps) {
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -53,7 +55,13 @@ export function ChatTranscript({ turns, hasDataset }: ChatTranscriptProps) {
                   <p className="mt-1 text-xs text-red-500">Please retry your question.</p>
                 </div>
               )}
-              {turn.result && <AnswerBlock result={turn.result} />}
+              {turn.result && (
+                <AnswerBlock
+                  result={turn.result}
+                  onAskFollowUp={onAskFollowUp}
+                  followUpsDisabled={asking}
+                />
+              )}
             </div>
           </div>
         </div>

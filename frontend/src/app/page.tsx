@@ -92,25 +92,14 @@ export default function Home() {
           {/* Profile (real data once uploaded) */}
           {dataset && <ProfilePanel dataset={dataset} />}
 
-          {/* Phase 2 tab stubs (charts / table) */}
-          {dataset && (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <StubPanel
-                title="Charts tab"
-                phase="Phase 2"
-                description="Interactive charts will render here."
-              />
-              <StubPanel
-                title="Result Table tab"
-                phase="Phase 2"
-                description="Aggregated result table view."
-              />
-            </div>
-          )}
-
-          {/* Chat transcript */}
+          {/* Chat transcript — charts / table / follow-ups render inside each answer */}
           <div className="flex-1">
-            <ChatTranscript turns={turns} hasDataset={!!dataset} />
+            <ChatTranscript
+              turns={turns}
+              hasDataset={!!dataset}
+              onAskFollowUp={handleAsk}
+              asking={asking}
+            />
           </div>
         </main>
 

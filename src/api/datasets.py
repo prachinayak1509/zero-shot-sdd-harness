@@ -267,9 +267,9 @@ def ask(
             "step_count": step_count,
             "status": status,
             "tokens_used": tokens_used,
-            "chart_spec": None,
-            "table": None,
-            "follow_ups": None,
+            "chart_spec": result.get("chart_spec"),
+            "table": result.get("table"),
+            "follow_ups": result.get("follow_ups"),
             "steps": None,
         }
     )

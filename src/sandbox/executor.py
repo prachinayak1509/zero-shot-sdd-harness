@@ -27,6 +27,7 @@ def _empty_result(error: str) -> dict:
         "ok": False,
         "result_repr": None,
         "result_value": None,
+        "table": None,
         "stdout": "",
         "error": error,
         "traceback": None,
@@ -40,7 +41,7 @@ def sandbox_exec(
 ) -> dict:
     """Run LLM-generated pandas in a restricted subprocess.
 
-    Returns ``{ok, result_repr, result_value, stdout, error, traceback}``.
+    Returns ``{ok, result_repr, result_value, table, stdout, error, traceback}``.
     """
     payload = json.dumps({"code": code, "dataset_paths": dataset_paths})
 

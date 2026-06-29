@@ -207,6 +207,7 @@ def node_run_code(state: AgentState) -> AgentState:
             **state,
             "last_result": result.get("result_value"),
             "last_result_repr": result.get("result_repr"),
+            "last_table": result.get("table"),
             "last_error": None,
             "step_count": step_count,
             "steps": _append_step(
@@ -225,6 +226,7 @@ def node_run_code(state: AgentState) -> AgentState:
         **state,
         "last_result": None,
         "last_result_repr": None,
+        "last_table": None,
         "last_error": error,
         "step_count": step_count,
         "steps": _append_step(
@@ -255,23 +257,125 @@ def node_inspect(state: AgentState) -> AgentState:
     }
 
 
+_VALID_CHART_TYPES = {"bar", "line", "scatter", "pie"}
+# Matches the LAST balanced-ish {...} block in the text (greedy from the last
+# top-level '{'). Combined with a fallback scan, this robustly recovers a
+# trailing JSON object whether or not it is fenced.
+_TRAILING_JSON_RE = re.compile(r"\{[^{}]*\}\s*$", re.DOTALL)
+_ANY_JSON_RE = re.compile(r"\{.*\}", re.DOTALL)
+
+
+def _table_preview(table: dict | None, max_rows: int = 5) -> str:
+    """Compact, bounded JSON of the result table's columns + first few rows so
+    the model can choose chart encodings. Never the full table."""
+    if not isinstance(table, dict):
+        return "none"
+    columns = table.get("columns") or []
+    rows = table.get("rows") or []
+    sample = rows[:max_rows] if isinstance(rows, list) else []
+    preview = {"columns": columns, "rows": sample, "total_rows": len(rows) if isinstance(rows, list) else 0}
+    return json.dumps(preview, default=str)[:4000]
+
+
+def _extract_trailing_json(text: str) -> tuple[str, dict | None]:
+    """Pull the LAST JSON object out of ``text`` (fenced or loose).
+
+    Returns ``(prose_without_json, parsed_obj_or_None)``. Never raises; any
+    parse failure yields ``(original_text, None)``.
+    """
+    if not text:
+        return text or "", None
+
+    # Prefer the last fenced ```json ... ``` block.
+    fenced = list(re.finditer(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL | re.IGNORECASE))
+    if fenced:
+        block = fenced[-1]
+        try:
+            obj = json.loads(block.group(1))
+            prose = (text[: block.start()] + text[block.end():]).strip()
+            return prose, obj if isinstance(obj, dict) else None
+        except Exception:  # noqa: BLE001
+            pass
+
+    # Fall back to a trailing loose {...} at the very end of the text.
+    m = _TRAILING_JSON_RE.search(text)
+    if not m:
+        # Last resort: the last {...} anywhere (greedy may over-capture but we
+        # only trust it if it parses).
+        m = _ANY_JSON_RE.search(text)
+    if m:
+        candidate = m.group(0)
+        try:
+            obj = json.loads(candidate)
+            if isinstance(obj, dict):
+                prose = (text[: m.start()] + text[m.end():]).strip()
+                return prose, obj
+        except Exception:  # noqa: BLE001
+            pass
+
+    return text.strip(), None
+
+
+def _validate_chart_spec(raw) -> dict | None:
+    """A chart_spec is valid only if it is a dict with a known ``type``."""
+    if not isinstance(raw, dict):
+        return None
+    ctype = str(raw.get("type") or "").strip().lower()
+    if ctype not in _VALID_CHART_TYPES:
+        return None
+    spec = dict(raw)
+    spec["type"] = ctype
+    return spec
+
+
+def _coerce_follow_ups(raw) -> list[str]:
+    """Coerce the parsed follow_ups into a capped list of non-empty strings."""
+    if not isinstance(raw, list):
+        return []
+    out: list[str] = []
+    for item in raw:
+        if isinstance(item, str) and item.strip():
+            out.append(item.strip())
+        if len(out) >= 3:
+            break
+    return out
+
+
 def node_finalize(state: AgentState) -> AgentState:
-    """Compose the prose answer (Gemini) from the raw result."""
+    """Compose the prose answer (Gemini) + agent-chosen chart/follow-ups.
+
+    The result ``table`` is deterministic (from the sandbox, ``last_table``) —
+    we never ask the LLM to produce rows. The LLM only chooses chart encodings
+    and follow-up questions, parsed from a trailing JSON block in its reply.
+    """
     started = time.monotonic()
     system = _load_prompt("finalize.md")
+    last_table = state.get("last_table")
     prompt = (
         f"Question: {state['question']}\n\n"
         f"Raw computed result: {state.get('last_result_repr')}\n\n"
+        f"Result table (columns + sample rows for choosing chart encodings):\n"
+        f"{_table_preview(last_table)}\n\n"
         f"Code:\n{state.get('code') or ''}\n\n"
         f"Last error (if any): {state.get('last_error') or 'none'}\n\n"
         f"Effort: {state.get('effort')}"
     )
+
+    chart_spec: dict | None = None
+    follow_ups: list[str] = []
+
     try:
-        answer = LLMClient().call_model(prompt, system=system)
-        tokens = _estimate_tokens(system, prompt, answer)
+        raw_answer = LLMClient().call_model(prompt, system=system)
+        tokens = _estimate_tokens(system, prompt, raw_answer)
+        # Parse the trailing JSON block out of the reply; degrade on any failure.
+        prose, parsed = _extract_trailing_json(raw_answer or "")
+        answer = prose or (raw_answer or "")
+        if isinstance(parsed, dict):
+            chart_spec = _validate_chart_spec(parsed.get("chart_spec"))
+            follow_ups = _coerce_follow_ups(parsed.get("follow_ups"))
     except Exception as exc:  # noqa: BLE001
         # Finalize should not become a fatal graph error — degrade to a plain
-        # answer built from what we have, so the user always gets a response.
+        # answer built from what we have, so the user always gets prose+table.
         logger.error("finalize llm failed run_id=%s: %s", state.get("run_id"), exc)
         if state.get("last_error"):
             answer = (
@@ -281,16 +385,25 @@ def node_finalize(state: AgentState) -> AgentState:
         else:
             answer = f"Result: {state.get('last_result_repr')}"
         tokens = 0
+        chart_spec = None
+        follow_ups = []
+
+    # The table is deterministic — always from the sandbox, regardless of branch.
+    table = last_table
 
     logger.info(
-        "finalize run_id=%s latency_ms=%d tokens=%d",
+        "finalize run_id=%s latency_ms=%d tokens=%d has_chart=%s n_follow_ups=%d",
         state.get("run_id"), int((time.monotonic() - started) * 1000), tokens,
+        chart_spec is not None, len(follow_ups),
     )
     return {
         **state,
         "answer": answer,
         "final_code": state.get("code"),
         "final_result_repr": state.get("last_result_repr"),
+        "chart_spec": chart_spec,
+        "table": table,
+        "follow_ups": follow_ups,
         "tokens_used": (state.get("tokens_used") or 0) + tokens,
         "checkpoint": "finalize",
         "steps": _append_step(

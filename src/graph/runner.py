@@ -73,6 +73,9 @@ def run_agent(
         "step_count": final.get("step_count") or 0,
         "status": status,
         "tokens_used": final.get("tokens_used") or 0,
+        "chart_spec": final.get("chart_spec"),
+        "table": final.get("table"),
+        "follow_ups": final.get("follow_ups"),
         "error": fatal,
     }
 

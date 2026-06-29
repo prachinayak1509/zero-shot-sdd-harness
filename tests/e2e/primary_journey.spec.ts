@@ -36,8 +36,8 @@ test('upload -> profile -> ask -> coded answer (with labelled stubs)', async ({ 
 
   // --- Labelled, inert stubs are PRESENT (not bugs) -----------------------
   // The workspace renders "Coming in a later phase" style stubs tagged with a
-  // phase pill (e.g. "Phase 2"). At least one must be visible.
-  await expect(page.getByText('Phase 2', { exact: true }).first()).toBeVisible()
+  // phase pill (e.g. "Phase 3"). At least one must be visible.
+  await expect(page.getByText('Phase 3', { exact: true }).first()).toBeVisible()
 
   // --- Ask a question -----------------------------------------------------
   const question = 'What is the total revenue grouped by region?'
