@@ -1,14 +1,14 @@
 """Graph runner — entry point invoked by the API (spec/api.md ask response).
 
 ``run_agent`` builds the initial ``AgentState``, invokes the compiled graph, and
-returns the ask-response dict. It then persists the ``QuestionAudit`` update and
-the assistant ``Message`` defensively — model imports and DB writes are wrapped
-in try/except so a persistence failure never blocks the answer from being
-returned. The api-routes slice creates the ``QuestionAudit`` row BEFORE calling
-``run_agent`` and passes ``audit_id``; this runner UPDATES that row.
+returns the ask-response dict. It then persists the ``QuestionAudit`` update
+defensively — the model import and DB write are wrapped in try/except so a
+persistence failure never blocks the answer from being returned. The api-routes
+slice creates the ``QuestionAudit`` row BEFORE calling ``run_agent`` and passes
+``audit_id``; this runner UPDATES that row. The assistant ``Message`` is written
+solely by the API layer (the single authoritative writer).
 """
 
-import json
 import logging
 
 from graph.agent import compiled_graph
@@ -81,14 +81,14 @@ def run_agent(
 
 
 def _persist(final: AgentState, result: dict) -> None:
-    """Defensively update QuestionAudit and append the assistant Message.
+    """Defensively update the existing QuestionAudit row.
 
-    Models are imported here (not at module top) so the graph package never
+    The model is imported here (not at module top) so the graph package never
     couples to the db-schema slice's import timing. Any failure is logged, never
     raised.
     """
     try:
-        from db.models import QuestionAudit, Message  # noqa: PLC0415
+        from db.models import QuestionAudit  # noqa: PLC0415
     except Exception as exc:  # noqa: BLE001
         logger.warning("persistence skipped — models unavailable: %s", exc)
         return
@@ -104,16 +104,7 @@ def _persist(final: AgentState, result: dict) -> None:
                 _set_if_has(audit, "final_result_repr", result["result_repr"])
                 _set_if_has(audit, "effort", result["effort"])
                 _set_if_has(audit, "error_message", result["error"])
-                steps = final.get("steps") or []
-                _set_if_has(audit, "steps", json.dumps(steps, default=str))
-
-            msg = Message(
-                conversation_id=result["conversation_id"],
-                role="assistant",
-                content=result["answer"] or "",
-            )
-            _set_if_has(msg, "audit_id", result["audit_id"])
-            session.add(msg)
+                _set_if_has(audit, "steps_json", final.get("steps") or [])
     except Exception as exc:  # noqa: BLE001 — never crash the answer on persist
         logger.warning("persistence failed audit_id=%s: %s", result.get("audit_id"), exc)
 
