@@ -82,6 +82,17 @@ export function Charts({
   const data = toRecords(table)
   const { type, x, y, series, title } = chartSpec
 
+  // Line charts silently render a blank SVG when the encodings don't resolve to
+  // real columns or coerce to zero plottable points. Validate up front and fall
+  // back to the same inline note used for a missing chart_spec.
+  if (type === 'line' && !canPlotLine(table, x, y, series ?? null)) {
+    return (
+      <div className="rounded-lg border border-gray-100 bg-gray-50/60 px-3 py-2 text-xs text-gray-500">
+        No chart suited this result.
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-lg border border-gray-100 bg-white p-3">
       {title && <p className="mb-2 text-xs font-medium text-gray-600">{title}</p>}
@@ -92,6 +103,54 @@ export function Charts({
       </div>
     </div>
   )
+}
+
+/**
+ * Pivot long-format records into wide rows keyed by x, with one numeric column
+ * per distinct series value. Returns the rows plus the ordered series keys so
+ * the line renderer can emit one <Line> per series.
+ */
+function pivotBySeries(
+  data: Record<string, unknown>[],
+  x: string,
+  y: string,
+  series: string,
+): { rows: Record<string, unknown>[]; keys: string[] } {
+  const keys: string[] = []
+  const byX = new Map<string, Record<string, unknown>>()
+  for (const d of data) {
+    const xKey = String(d[x] ?? '')
+    const sKey = String(d[series] ?? '')
+    if (!keys.includes(sKey)) keys.push(sKey)
+    let row = byX.get(xKey)
+    if (!row) {
+      row = { [x]: d[x] }
+      byX.set(xKey, row)
+    }
+    row[sKey] = num(d[y])
+  }
+  return { rows: Array.from(byX.values()), keys }
+}
+
+/**
+ * Whether a line spec has any chance of plotting: x and y must resolve to real
+ * columns, and after numeric coercion at least one point must exist.
+ */
+function canPlotLine(
+  table: ResultTable,
+  x: string,
+  y: string,
+  series: string | null,
+): boolean {
+  const cols = table.columns
+  if (!cols.includes(x) || !cols.includes(y)) return false
+  if (series && !cols.includes(series)) return false
+  const data = toRecords(table)
+  if (series) {
+    const { rows, keys } = pivotBySeries(data, x, y, series)
+    return rows.some((r) => keys.some((k) => num(r[k]) !== null))
+  }
+  return data.some((d) => num(d[y]) !== null)
 }
 
 function renderChart(
@@ -107,24 +166,55 @@ function renderChart(
   }
 
   switch (type) {
-    case 'line':
+    case 'line': {
+      // When series is set we pivot the long-format records into one numeric
+      // column per series value and emit one <Line> each; otherwise we coerce y
+      // to numbers in place and render a single line.
+      if (series) {
+        const { rows, keys } = pivotBySeries(data, x, y, series)
+        return (
+          <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+            <XAxis dataKey={x} {...axisProps} />
+            <YAxis {...axisProps} />
+            <Tooltip />
+            <Legend wrapperStyle={{ fontSize: 12 }} />
+            {keys.map((key, i) => (
+              <Line
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={PALETTE[i % PALETTE.length]}
+                strokeWidth={2}
+                // A series with a single point would vanish without a dot.
+                dot={rows.length <= 1}
+                name={key}
+                connectNulls
+              />
+            ))}
+          </LineChart>
+        )
+      }
+      const lineData = data.map((d) => ({ ...d, [y]: num(d[y]) }))
       return (
-        <LineChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
+        <LineChart data={lineData} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
           <XAxis dataKey={x} {...axisProps} />
           <YAxis {...axisProps} />
           <Tooltip />
-          {series && <Legend wrapperStyle={{ fontSize: 12 }} />}
           <Line
             type="monotone"
             dataKey={y}
             stroke={PALETTE[0]}
             strokeWidth={2}
-            dot={false}
-            name={series ?? y}
+            // Keep dots off for normal trends, but show them when the trend
+            // collapses to a single row so it stays visible.
+            dot={lineData.length <= 1}
+            name={y}
           />
         </LineChart>
       )
+    }
 
     case 'scatter':
       return (
