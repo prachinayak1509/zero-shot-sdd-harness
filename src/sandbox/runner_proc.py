@@ -179,7 +179,14 @@ def _run(payload: dict) -> dict:
     safe_globals = {"__builtins__": _SAFE_BUILTINS, "pd": pd}
     for name, path in dataset_paths.items():
         try:
-            safe_globals[name] = pd.read_csv(path)
+            lower = str(path).lower()
+            if lower.endswith(".xlsx") or lower.endswith(".xls"):
+                # A workbook path bound directly to a table loads its first
+                # sheet. (The upload path normally materializes each sheet as
+                # its own CSV; this branch keeps a raw .xlsx path usable too.)
+                safe_globals[name] = pd.read_excel(path)
+            else:
+                safe_globals[name] = pd.read_csv(path)
         except Exception as exc:  # noqa: BLE001
             return {
                 "ok": False,

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import ForeignKey, Integer, JSON, Text, TIMESTAMP
+from sqlalchemy import ForeignKey, Integer, JSON, Text, TIMESTAMP, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -43,6 +43,13 @@ class Dataset(Base):
     row_count: Mapped[int] = mapped_column(Integer, nullable=False)
     profile_json: Mapped[dict] = mapped_column(JSON, nullable=False)
     source_kind: Mapped[str] = mapped_column(Text, nullable=False, default="csv")
+    # Phase 3: the original upload filename that produced this dataset row. The
+    # same value is shared by every sheet of one xlsx workbook; nullable for
+    # backward compatibility with Phase 1/2 rows.
+    source_file: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Phase 3: the code recipe that produced a derived dataset (used by the
+    # derived slice); nullable for non-derived rows.
+    recipe_code: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), nullable=False, default=_now
     )
@@ -89,6 +96,38 @@ class QuestionAudit(Base):
     )
     completed_at: Mapped[datetime | None] = mapped_column(
         TIMESTAMP(timezone=True), nullable=True
+    )
+
+
+class WorkspaceDataset(Base):
+    """Phase 3 workspace association: links MULTIPLE Datasets to one Conversation.
+
+    Each row binds one ``Dataset`` to a ``table_name`` within a conversation's
+    sandbox namespace, so the agent can join/compare across all of a
+    conversation's tables. ``Conversation.dataset_id`` remains the PRIMARY/first
+    dataset (backward compatible); ``WorkspaceDataset`` holds the FULL set
+    (including the primary). ``table_name`` must be unique within a single
+    conversation.
+    """
+
+    __tablename__ = "workspace_datasets"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    conversation_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("conversations.id"), nullable=False
+    )
+    dataset_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("datasets.id"), nullable=False
+    )
+    table_name: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=False, default=_now
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "conversation_id", "table_name", name="uq_workspace_conv_table"
+        ),
     )
 
 

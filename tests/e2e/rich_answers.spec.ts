@@ -54,23 +54,31 @@ test('rich answers: chart + table + follow-ups + quality badges (Phase 2 real)',
   // The user's question bubble appears immediately.
   await expect(page.getByText(question).first()).toBeVisible()
 
+  // The answers (chart / table / follow-ups / Show code) live inside <main>;
+  // the saved-sessions sidebar is a separate <aside>. Scope every answer-area
+  // locator to <main> so a sidebar session button (whose title contains "?")
+  // can never satisfy or break a follow-up/answer assertion.
+  const main = page.locator('main')
+
   // --- A real CHART renders (Recharts emits an <svg>/<canvas>) ------------
   // Recharts renders into a .recharts-wrapper containing an <svg class="recharts-surface">.
-  const chart = page
+  const chart = main
     .locator('svg.recharts-surface, .recharts-wrapper svg, .recharts-responsive-container svg, canvas')
     .first()
   await expect(chart).toBeVisible({ timeout: 90_000 })
 
   // --- A real RESULT TABLE renders with >= 2 aggregated rows --------------
   // The Result Table renders the aggregated group-by rows (one per region).
-  const tableRows = page.locator('table tbody tr')
+  const tableRows = main.locator('table tbody tr')
   await expect(tableRows.first()).toBeVisible({ timeout: 90_000 })
   expect(await tableRows.count()).toBeGreaterThanOrEqual(2)
 
   // --- Suggested FOLLOW-UP chips render ----------------------------------
-  // The FollowUps strip renders clickable suggestion buttons. They are buttons
-  // distinct from the primary "Ask" button; assert at least two are present.
-  const followUps = page.getByRole('button').filter({ hasText: /\?/ })
+  // The FollowUps strip renders clickable suggestion buttons inside the answer
+  // area. They are buttons distinct from the primary "Ask" button; assert at
+  // least two are present. Scoped to <main> so sidebar session buttons (whose
+  // titles also contain "?") are excluded.
+  const followUps = main.getByRole('button').filter({ hasText: /\?/ })
   await expect(followUps.first()).toBeVisible({ timeout: 90_000 })
   const followUpCount = await followUps.count()
   expect(followUpCount).toBeGreaterThanOrEqual(2)
@@ -78,7 +86,7 @@ test('rich answers: chart + table + follow-ups + quality badges (Phase 2 real)',
   // --- Count answer blocks before clicking a follow-up -------------------
   // Each assistant answer exposes a "Show code" control; count them as a proxy
   // for the number of rendered answers.
-  const answerMarkers = page.getByRole('button', { name: 'Show code' })
+  const answerMarkers = main.getByRole('button', { name: 'Show code' })
   const beforeCount = await answerMarkers.count()
   expect(beforeCount).toBeGreaterThanOrEqual(1)
 

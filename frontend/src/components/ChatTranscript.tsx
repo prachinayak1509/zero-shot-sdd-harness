@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { ChatTurn } from '@/lib/types'
+import type { ChatTurn, DerivedDataset } from '@/lib/types'
 import { AnswerBlock } from './AnswerBlock'
 
 interface ChatTranscriptProps {
@@ -9,9 +9,19 @@ interface ChatTranscriptProps {
   hasDataset: boolean
   onAskFollowUp: (question: string) => void
   asking: boolean
+  /** Active dataset id — enables "Save as dataset" on each answer. */
+  datasetId?: number | null
+  onSavedDerived?: (ds: DerivedDataset) => void
 }
 
-export function ChatTranscript({ turns, hasDataset, onAskFollowUp, asking }: ChatTranscriptProps) {
+export function ChatTranscript({
+  turns,
+  hasDataset,
+  onAskFollowUp,
+  asking,
+  datasetId = null,
+  onSavedDerived,
+}: ChatTranscriptProps) {
   const endRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -60,6 +70,8 @@ export function ChatTranscript({ turns, hasDataset, onAskFollowUp, asking }: Cha
                   result={turn.result}
                   onAskFollowUp={onAskFollowUp}
                   followUpsDisabled={asking}
+                  datasetId={datasetId}
+                  onSavedDerived={onSavedDerived}
                 />
               )}
             </div>

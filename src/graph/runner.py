@@ -29,7 +29,17 @@ def run_agent(
     audit_id: int,
     step_budget: int = 5,
 ) -> dict:
-    """Run the data-analysis agent for one question and return the ask payload."""
+    """Run the data-analysis agent for one question and return the ask payload.
+
+    ``dataset_paths`` maps every workspace table name -> on-disk file path. In
+    Phase 1/2 this is a single ``{table_name: path}`` entry; in Phase 3 it
+    carries ALL of a conversation's workspace datasets so the agent can join
+    across tables. ``profile`` may carry a ``tables`` sub-key (per-table
+    profiles) so the model sees every table's schema; the write_code node
+    injects all of ``dataset_paths``' table names into its prompt. The signature
+    is unchanged from Phase 1/2 — multi-table is purely richer data through the
+    existing parameters.
+    """
     initial: AgentState = {
         "run_id": audit_id,
         "dataset_id": dataset_id,
@@ -76,6 +86,7 @@ def run_agent(
         "chart_spec": final.get("chart_spec"),
         "table": final.get("table"),
         "follow_ups": final.get("follow_ups"),
+        "steps": final.get("steps") or [],
         "error": fatal,
     }
 

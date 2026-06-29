@@ -3,7 +3,13 @@
 // Every error is { detail: { code, message } } with a non-2xx status.
 // Each function unwraps `data` and throws an ApiError carrying detail.message.
 
-import type { AskResult, Dataset } from './types'
+import type {
+  AskResult,
+  Conversation,
+  Dataset,
+  DerivedDataset,
+  SessionSummary,
+} from './types'
 
 export class ApiError extends Error {
   code: string
@@ -68,6 +74,73 @@ export async function getDataset(id: number): Promise<Dataset> {
     throw new ApiError('Network error — is the server running?', 'network', 0)
   }
   return unwrap<Dataset>(res)
+}
+
+/**
+ * Add one or more files (CSV or .xlsx) to a workspace. Each file — and each
+ * sheet of a multi-sheet xlsx — becomes its own named Dataset table. When
+ * `conversationId` is given the files are added to that existing conversation's
+ * workspace (POST /api/datasets with the current `conversation_id`).
+ *
+ * The backend may return a single Dataset (one CSV) or a list (multi-file /
+ * multi-sheet); this normalizes both to a Dataset[].
+ */
+export async function addFilesToWorkspace(
+  files: File[],
+  conversationId: number | null,
+): Promise<Dataset[]> {
+  const form = new FormData()
+  for (const f of files) form.append('file', f)
+  if (conversationId != null) form.append('conversation_id', String(conversationId))
+  let res: Response
+  try {
+    res = await fetch('/api/datasets', { method: 'POST', body: form })
+  } catch {
+    throw new ApiError('Network error — is the server running?', 'network', 0)
+  }
+  const data = await unwrap<Dataset | Dataset[]>(res)
+  return Array.isArray(data) ? data : [data]
+}
+
+/** List saved sessions for the sidebar (most-recent first per backend ordering). */
+export async function listConversations(): Promise<SessionSummary[]> {
+  let res: Response
+  try {
+    res = await fetch('/api/conversations')
+  } catch {
+    throw new ApiError('Network error — is the server running?', 'network', 0)
+  }
+  return unwrap<SessionSummary[]>(res)
+}
+
+/** Reload one conversation with its full message history, audits, and datasets. */
+export async function getConversation(id: number): Promise<Conversation> {
+  let res: Response
+  try {
+    res = await fetch(`/api/conversations/${id}`)
+  } catch {
+    throw new ApiError('Network error — is the server running?', 'network', 0)
+  }
+  return unwrap<Conversation>(res)
+}
+
+/** Save a cleaned/derived result as both a reusable file and a code recipe. */
+export async function saveDerived(
+  datasetId: number,
+  name: string,
+  code: string,
+): Promise<DerivedDataset> {
+  let res: Response
+  try {
+    res = await fetch(`/api/datasets/${datasetId}/derived`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, code }),
+    })
+  } catch {
+    throw new ApiError('Network error — is the server running?', 'network', 0)
+  }
+  return unwrap<DerivedDataset>(res)
 }
 
 /** Ask one question against a dataset; conversationId continues a conversation. */

@@ -3,20 +3,27 @@
 // aggregated result table, and clickable follow-up chips. When the run failed it
 // renders a best-effort error card that STILL shows code/result.
 
-import type { AskResult } from '@/lib/types'
+import type { AskResult, DerivedDataset } from '@/lib/types'
 import { CodePanel } from './CodePanel'
 import { Charts } from './Charts'
 import { ResultTable } from './ResultTable'
 import { FollowUps } from './FollowUps'
+import { StepTrace } from './StepTrace'
+import { DerivedSave } from './DerivedSave'
 
 export function AnswerBlock({
   result,
   onAskFollowUp,
   followUpsDisabled = false,
+  datasetId = null,
+  onSavedDerived,
 }: {
   result: AskResult
   onAskFollowUp: (question: string) => void
   followUpsDisabled?: boolean
+  /** The dataset this answer was computed against — enables "Save as dataset". */
+  datasetId?: number | null
+  onSavedDerived?: (ds: DerivedDataset) => void
 }) {
   const failed = result.status === 'failed'
 
@@ -58,6 +65,9 @@ export function AnswerBlock({
         <CodePanel code={result.code} resultRepr={result.result_repr} />
       )}
 
+      {/* Phase-3 full step trace — "why this approach" per step. */}
+      <StepTrace steps={result.steps} />
+
       {/* Rich Phase-2 surfaces — chart, table, follow-ups. */}
       {!failed && (
         <>
@@ -69,6 +79,15 @@ export function AnswerBlock({
             disabled={followUpsDisabled}
           />
         </>
+      )}
+
+      {/* Phase-3 derived-dataset save — prefilled with this answer's code. */}
+      {!failed && (
+        <DerivedSave
+          datasetId={datasetId}
+          initialCode={result.code}
+          onSaved={onSavedDerived}
+        />
       )}
     </div>
   )
