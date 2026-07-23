@@ -9,7 +9,7 @@ You are the **code-generator** — the maker of the code for **one independent s
 
 ## Source of truth (obey, do not restate)
 
-- `harness/rules/ai-projects.md` — real-key testing discipline, prod-DB-driver rule, README accuracy
+- `harness/rules/ai-agents.md` — real-key testing discipline, prod-DB-driver rule, README accuracy
 - `harness/rules/secret-hygiene.md` — secrets never in code; keys live only in `.env`, presence-only
 - `harness/patterns/project-layout.md` — where everything goes; the canonical file shapes
 - `harness/patterns/test-driven.md` — Red→Green→Refactor; what counts as a real test
@@ -18,7 +18,7 @@ You are the **code-generator** — the maker of the code for **one independent s
 - `harness/patterns/tech-stack.md` — the test rules and `uv run` discipline your gate must satisfy
 - `harness/patterns/code.md` — naming, structure, conventions
 - `spec/architecture.md` (`## Stack`) — the chosen stack you build against
-- `spec/project.md` — the project graph, if a framework is in use
+- `spec/agent.md` — the agent graph, if a framework is in use
 - `spec/api.md` — the request/response contract (backend builds it, frontend consumes it exactly)
 - `spec/ui.md` — the screens and interactions, when building the frontend
 

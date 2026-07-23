@@ -10,7 +10,7 @@ A starting template for building AI projects. The spec in `spec/` is either:
 
 ## Your First Action Every Session
 
-1. Read `harness/rules/ai-projects.md` — mandatory rules for all AI sessions
+1. Read `harness/rules/ai-agents.md` — mandatory rules for all AI sessions
 2. Check whether `spec/roadmap.md` has been filled in:
    - If it still contains `<!-- FILL IN -->` placeholders → the spec is not ready; do not write application code yet
    - If it is filled in → proceed to read the full spec manifest below before touching any code
@@ -24,8 +24,8 @@ spec/capabilities/          ← all files
 spec/data.md
 spec/api.md
 spec/ui.md
-spec/project.md     ← REQUIRED for any project framework project
-harness/rules/ai-projects.md
+spec/agent.md     ← REQUIRED for any agent framework project
+harness/rules/ai-agents.md
 harness/patterns/spec-driven.md
 harness/patterns/phases.md
 harness/patterns/project-layout.md
@@ -34,11 +34,11 @@ harness/patterns/test-driven.md
 harness/patterns/ui-ux.md
 harness/patterns/tech-stack.md     ← generic stack rules (chosen stack is in spec/architecture.md)
 harness/patterns/code.md           ← generic code conventions
-harness/patterns/agentic-ai.md     ← catalogue of agentic patterns (chosen graph is in spec/project.md)
+harness/patterns/agentic-ai.md     ← catalogue of agentic patterns (chosen graph is in spec/agent.md)
 harness/rules/git.md
 ```
 
-**`spec/project.md` is mandatory** for any project using LangGraph, CrewAI, AutoGen, or any project orchestration framework. If it does not exist when you reach Phase 2, stop and raise it as a blocker. (The reusable catalogue of agentic-AI patterns to choose from lives in `harness/patterns/agentic-ai.md`.)
+**`spec/agent.md` is mandatory** for any project using LangGraph, CrewAI, AutoGen, or any agent orchestration framework. If it does not exist when you reach Phase 2, stop and raise it as a blocker. (The reusable catalogue of agentic-AI patterns to choose from lives in `harness/patterns/agentic-ai.md`.)
 
 ## If the Spec Is Not Ready
 
@@ -54,7 +54,7 @@ These are the entry points. All are manual (`disable-model-invocation: true`). E
 | `/zero-shot-fix [target]` | Diagnose + fix a bug, error, failing test, or spec/code drift, then verify. |
 | `/zero-shot-sync [scope]` | Reconcile spec ↔ code so they match (spec wins), then verify. |
 
-## Key Rules (summary — full rules in harness/rules/ai-projects.md)
+## Key Rules (summary — full rules in harness/rules/ai-agents.md)
 
 - Never write application code before reading the full spec
 - Never skip a phase — complete phase N before starting phase N+1
@@ -81,7 +81,7 @@ Everything else (graph structure, runner, API, DB session, settings, test fixtur
 | Project | Role | Tools |
 |-------|------|-------|
 | project-builder | Orchestrator — plans phases, fans out code-generator instances per slice (in parallel), and owns the git/PR surface for a build | read/bash/agent |
-| spec-writer | The single design authority — writes the FULL spec (incl. architecture + project-graph + phased plan) **and** self-reviews it | read/write |
+| spec-writer | The single design authority — writes the FULL spec (incl. architecture + agent-graph + phased plan) **and** self-reviews it | read/write |
 | code-generator | Implements ONE independent slice (backend `src/`, frontend `frontend/`, or both) plus tests — spawned in parallel, one per slice | read/write/bash |
 | qa-auditor | Independent review **and** run gates/tests/app **and** audit spec↔code drift; runs FIRST in fix/sync and classifies root cause SPEC-vs-CODE | read-only (bash) |
 

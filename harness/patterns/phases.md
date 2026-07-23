@@ -48,14 +48,14 @@ Each phase covers a chunk of remaining user requirements from `spec/roadmap.md`.
 
 ---
 
-### Phase N+1 — Agentic Stack Upgrade + Resilience *(only if `spec/project.md` calls for patterns beyond the base loop)*
+### Phase N+1 — Agentic Stack Upgrade + Resilience *(only if `spec/agent.md` calls for patterns beyond the base loop)*
 
-If the spec's project graph needs more than the base ReAct loop, add a phase to upgrade the agentic architecture and harden external calls. A simple single-loop project that already meets its requirements does not need this phase — do not add it by default.
+If the spec's agent graph needs more than the base ReAct loop, add a phase to upgrade the agentic architecture and harden external calls. A simple single-loop project that already meets its requirements does not need this phase — do not add it by default.
 
-- **Upgrade the agentic stack** per `spec/project.md`: wire in the patterns it calls for beyond the base ReAct loop — planning, reflection, multi-project coordination, memory, or whatever the spec requires. Phase 1 laid the skeleton; this phase promotes it to the production-grade architecture.
+- **Upgrade the agentic stack** per `spec/agent.md`: wire in the patterns it calls for beyond the base ReAct loop — planning, reflection, multi-agent coordination, memory, or whatever the spec requires. Phase 1 laid the skeleton; this phase promotes it to the production-grade architecture.
 - Add error handling to all external calls: try/except, retries, timeouts. Project continues (degraded, not crashed) on non-critical failures.
 - **Gate (all must pass):**
-  1. Every pattern listed in `spec/project.md` beyond the base loop is wired and exercised by a real test
+  1. Every pattern listed in `spec/agent.md` beyond the base loop is wired and exercised by a real test
   2. Project handles all documented failure modes without crashing
 
 ---
@@ -69,7 +69,7 @@ The last phase turns the remaining labelled stubs into real features so every ca
 - **Gate (all must pass):**
   1. All integrations are real; project runs fully end-to-end against the real LLM/API
   2. Every capability in the spec is implemented and tested with real data
-  3. `spec/project.md` graph matches the running code — drift audit passes on the agentic surfaces
+  3. `spec/agent.md` graph matches the running code — drift audit passes on the agentic surfaces
 
 ---
 
@@ -127,7 +127,7 @@ The spec-writer derives the phases from `spec/roadmap.md`. What is fixed:
 
 - **Phase 1 is always the smallest user-testable win** — the one core path real and first-time-right, the rest as labelled stubs (this matches `spec-writer.md` exactly; the two never disagree)
 - **The agentic stack is always wired in Phase 1** — graph, state, nodes, assembly; never deferred (the skeleton is wired even though most nodes start as stubs)
-- **An Agentic Stack Upgrade phase and a Complete Agentic System phase are added only when `spec/project.md` calls for patterns beyond the base loop** — a simple project that meets its requirements does not get them by default
+- **An Agentic Stack Upgrade phase and a Complete Agentic System phase are added only when `spec/agent.md` calls for patterns beyond the base loop** — a simple project that meets its requirements does not get them by default
 - **Trailing phases are only added when the spec explicitly requires them**
 
 What varies (derived from requirements):

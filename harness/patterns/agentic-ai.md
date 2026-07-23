@@ -1,6 +1,6 @@
 # Agentic-AI Patterns
 
-The reusable catalogue of agentic design patterns — generic engineering doctrine, not a project's design. The spec-writer picks the minimal set a project actually needs and records the concrete composition in [`spec/project.md`](../../spec/project.md), citing the patterns chosen here. Prefer the simplest pattern that works: do not reach for multi-project when a single tool-use loop suffices.
+The reusable catalogue of agentic design patterns — generic engineering doctrine, not a project's design. The spec-writer picks the minimal set a project actually needs and records the concrete composition in [`spec/agent.md`](../../spec/agent.md), citing the patterns chosen here. Prefer the simplest pattern that works: do not reach for multi-agent when a single tool-use loop suffices.
 
 ---
 
@@ -120,8 +120,8 @@ The reusable catalogue of agentic design patterns — generic engineering doctri
 **The default architecture is a ReAct loop.** Unless the task is a single deterministic transform with no branching, the baseline for "a project" is a **ReAct loop** (#17 + #5): **reason → act via a tool → observe → repeat until done** — wrapped with guardrails (#18) and observability (#19) always on. That is the floor, not a single-shot `prompt → answer`. A linear prompt chain (#1) is a step *down* from this floor — pick it only when there are genuinely no tools and no branching.
 
 - **Start at ReAct, not below it.** A tool-use loop with good prompts and structured logging is the smallest *real* project. Wire it in Phase 1 and measure.
-- **Reach up only on a concrete need.** Planning (#6), reflection (#4), multi-project (#7), and heavy reasoning add latency and cost — upgrade them in Phase 4, never up front.
+- **Reach up only on a concrete need.** Planning (#6), reflection (#4), multi-agent (#7), and heavy reasoning add latency and cost — upgrade them in Phase 4, never up front.
 - **Reach down only when there are no tools.** If the task is a fixed transform with no actions to take, a prompt chain (#1) or a single call is correct — don't bolt a loop onto a one-shot.
 - **Compose deliberately.** Patterns stack (e.g. planning + tool use + reflection); keep the set minimal and the data flow between them explicit.
 
-The chosen composition for **this** project — which patterns, wired how — is documented in [`spec/project.md`](../../spec/project.md).
+The chosen composition for **this** project — which patterns, wired how — is documented in [`spec/agent.md`](../../spec/agent.md).

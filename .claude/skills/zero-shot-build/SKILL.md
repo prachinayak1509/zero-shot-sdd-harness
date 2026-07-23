@@ -124,7 +124,7 @@ Read all prior rounds. Now ask the **technical build questions** — only genuin
 
 Invoke the **project-builder** sub-project once with the brief and the populated `.env`. Tell it to run, in order, and return the **Phase-1 test-handoff**:
 
-- **DESIGN** — spec-writer writes the full spec: vision/capabilities, `spec/architecture.md` (incl. the `## Stack` section), `spec/project.md` (if a framework is chosen), and the phased plan in `spec/roadmap.md` under "## Phases of Development" (per phase: Goal · independent slices · key surfaces/files · the exact runnable Gate command · how the user tests it).
+- **DESIGN** — spec-writer writes the full spec: vision/capabilities, `spec/architecture.md` (incl. the `## Stack` section), `spec/agent.md` (if a framework is chosen), and the phased plan in `spec/roadmap.md` under "## Phases of Development" (per phase: Goal · independent slices · key surfaces/files · the exact runnable Gate command · how the user tests it).
 - **SCAFFOLD** — branch `feature/<slug>-v0.1`, project dirs, `.env.example`, first commit + push, open the PR.
 - **BUILD PHASE 1** — fan out generators per independent slice in parallel, gate each slice with qa-auditor, then return the Phase-1 test-handoff and STOP.
 

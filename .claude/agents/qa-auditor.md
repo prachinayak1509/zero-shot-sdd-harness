@@ -16,7 +16,7 @@ Two modes; the caller says which (or infer from the request).
 - `harness/patterns/spec-driven.md` — spec is the source of truth in a drift audit
 - `harness/patterns/test-driven.md` — what counts as a real test
 - `harness/patterns/ui-ux.md` — the golden-path smoke must assert content + states
-- `harness/rules/ai-projects.md` — real-key testing / prod-DB-driver rules
+- `harness/rules/ai-agents.md` — real-key testing / prod-DB-driver rules
 - `harness/rules/secret-hygiene.md` — secrets never in code; keys live only in `.env`
 - `harness/patterns/code.md` — naming, structure, conventions
 
