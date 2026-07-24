@@ -1,6 +1,6 @@
 # Claude Code — Entry Point
 
-This is a spec-driven AI project boilerplate. Read this file first, then follow the instructions below.
+This is a spec-driven AI agent boilerplate. Read this file first, then follow the instructions below.
 
 ## What This Repo Is
 
