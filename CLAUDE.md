@@ -78,7 +78,7 @@ Everything else (graph structure, runner, API, DB session, settings, test fixtur
 
 `/zero-shot-build` delegates a full build to **project-builder**, which plans and coordinates the rest and owns git/PR. `/zero-shot-fix` and `/zero-shot-sync` call the workers directly (no project-builder) and own git themselves. Each agent is one full, self-contained definition at `.claude/agents/<name>.md` (the path is the agent slug).
 
-| Project | Role | Tools |
+| Agent | Role | Tools |
 |-------|------|-------|
 | project-builder | Orchestrator — plans phases, fans out code-generator instances per slice (in parallel), and owns the git/PR surface for a build | read/bash/agent |
 | spec-writer | The single design authority — writes the FULL spec (incl. architecture + agent-graph + phased plan) **and** self-reviews it | read/write |
