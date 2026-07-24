@@ -4,7 +4,7 @@ This directory is the authoritative specification for this project. All code mus
 
 ## Status
 
-Check `spec/roadmap.md` to see if the spec has been filled in. If it still contains `<!-- FILL IN -->` markers, the spec-writer sub-project needs to complete it before any application code is written.
+Check `spec/roadmap.md` to see if the spec has been filled in. If it still contains `<!-- FILL IN -->` markers, the spec-writer sub-agent needs to complete it before any application code is written.
 
 ## Structure
 
@@ -14,14 +14,14 @@ Check `spec/roadmap.md` to see if the spec has been filled in. If it still conta
 spec/                 ← The product (you read & edit this)
   roadmap.md       ← Purpose, goals, success criteria, future phases
   architecture.md  ← System design, layers, data flow, and the chosen ## Stack
-  project.md         ← This project's graph (state, nodes, edges) — if a framework is used
+  project.md         ← This agent's graph (state, nodes, edges) — if a framework is used
   data.md          ← Data schema
   api.md           ← API surface (REST/GraphQL/CLI/etc.)
   ui.md            ← UI requirements (if any)
   capabilities/    ← One file per discrete capability
 
 harness/              ← How to build it (generic engineering doctrine)
-  rules/           ← Mandatory rules (ai-projects, git, secret-hygiene)
+  rules/           ← Mandatory rules (ai-agents, git, secret-hygiene)
   patterns/        ← phases, project-layout, test-driven, ui-ux, engineering-practices,
                      spec-driven, tech-stack (generic stack rules), code (conventions),
                      agentic-ai (pattern catalogue)
@@ -37,6 +37,6 @@ harness/              ← How to build it (generic engineering doctrine)
 
 ## Who Updates the Spec
 
-- **New project:** the `/zero-shot-build` skill drives the spec-writer sub-project, which drafts and self-reviews the spec
+- **New project:** the `/zero-shot-build` skill drives the spec-writer sub-agent, which drafts and self-reviews the spec
 - **New capability:** run `/zero-shot-build` on an existing spec — it adds the capability via the spec-writer
 - **Drift between spec and code:** run `/zero-shot-sync` to reconcile (spec wins)

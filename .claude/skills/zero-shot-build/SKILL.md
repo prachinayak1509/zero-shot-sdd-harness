@@ -48,10 +48,10 @@ All rounds use `AskUserQuestion`; the API key prompt is the only additional manu
 4. Read Round 1 answers carefully. You now know the idea category (data analysis, email triage, code review, etc.). Write ALL questions and ALL options for this round as if you are a product designer who has used tools exactly like this.
 5. Load `AskUserQuestion`. Ask **4 questions**, all `multiSelect: true`. Cover these four interaction-model dimensions — all options must be specific to the idea:
 
-   - **Session model** — how long does one "conversation" last? E.g. for a data analyst project: "I upload a file, ask one question, done", "I upload once and ask many questions in a session", "I return to the same dataset across multiple days", "It runs automatically and I review results".
-   - **Memory & state** — what should carry across turns or sessions? E.g. for a data analyst project: "The conversation history (what I asked before)", "The uploaded datasets stay loaded", "Derived/cleaned datasets I created during the session", "A global context I can annotate (column descriptions, business rules)", "Nothing — fresh start every time".
-   - **Multi-item handling** — does it work with one thing at a time or many? E.g. for a data analyst project: "One file at a time", "Multiple files I can join or compare", "A folder of related files treated as one dataset", "It picks the right file automatically from my library".
-   - **When things go wrong** — what should it do when it can't answer confidently? E.g. for a data analyst project: "Ask me a clarifying question before running", "Give me its best guess and flag the uncertainty", "Show me what it tried and where it got stuck", "Retry with a different approach automatically".
+   - **Session model** — how long does one "conversation" last? E.g. for a data analyst agent: "I upload a file, ask one question, done", "I upload once and ask many questions in a session", "I return to the same dataset across multiple days", "It runs automatically and I review results".
+   - **Memory & state** — what should carry across turns or sessions? E.g. for a data analyst agent: "The conversation history (what I asked before)", "The uploaded datasets stay loaded", "Derived/cleaned datasets I created during the session", "A global context I can annotate (column descriptions, business rules)", "Nothing — fresh start every time".
+   - **Multi-item handling** — does it work with one thing at a time or many? E.g. for a data analyst agent: "One file at a time", "Multiple files I can join or compare", "A folder of related files treated as one dataset", "It picks the right file automatically from my library".
+   - **When things go wrong** — what should it do when it can't answer confidently? E.g. for a data analyst agent: "Ask me a clarifying question before running", "Give me its best guess and flag the uncertainty", "Show me what it tried and where it got stuck", "Retry with a different approach automatically".
 
    **Skip any question if Round 1 already answered it.** Do not ask for information you already have.
 
@@ -62,10 +62,10 @@ All rounds use `AskUserQuestion`; the API key prompt is the only additional manu
 6. Read Rounds 1–2. You now know what the project processes and how users interact with it. This round uncovers what makes the project genuinely powerful vs. a toy. Write ALL options as idea-specific concrete features — not abstract categories.
 7. Load `AskUserQuestion`. Ask **4 questions**, all `multiSelect: true`. Cover these four feature-depth dimensions:
 
-   - **Analysis / reasoning depth** — how hard should it work on each request? E.g. for a data analyst project: "Fast answer — one LLM call, no iteration", "Multi-step reasoning — tries code, sees result, tries again", "Iterative until it finds the right answer (up to N steps)", "Plans a full analysis strategy before executing".
-   - **Output richness** — what forms should results take? E.g. for a data analyst project: "Plain text answer with key numbers", "Interactive charts I can zoom and filter", "A summary table alongside the prose", "An exportable file (CSV, cleaned dataset, report)".
-   - **Proactive intelligence** — should it do anything without being asked? E.g. for a data analyst project: "No — only answers what I ask", "Suggests 2–3 follow-up questions after each answer", "Flags anomalies or data-quality issues it notices while answering", "Auto-profiles a new dataset when I upload it".
-   - **Integration surface** — what else does it connect to or produce for? E.g. for a data analyst project: "Standalone — no integrations needed", "Saves derived/cleaned datasets back to my library", "Exports to Slack / email / dashboard", "Embeds in our existing data tool".
+   - **Analysis / reasoning depth** — how hard should it work on each request? E.g. for a data analyst agent: "Fast answer — one LLM call, no iteration", "Multi-step reasoning — tries code, sees result, tries again", "Iterative until it finds the right answer (up to N steps)", "Plans a full analysis strategy before executing".
+   - **Output richness** — what forms should results take? E.g. for a data analyst agent: "Plain text answer with key numbers", "Interactive charts I can zoom and filter", "A summary table alongside the prose", "An exportable file (CSV, cleaned dataset, report)".
+   - **Proactive intelligence** — should it do anything without being asked? E.g. for a data analyst agent: "No — only answers what I ask", "Suggests 2–3 follow-up questions after each answer", "Flags anomalies or data-quality issues it notices while answering", "Auto-profiles a new dataset when I upload it".
+   - **Integration surface** — what else does it connect to or produce for? E.g. for a data analyst agent: "Standalone — no integrations needed", "Saves derived/cleaned datasets back to my library", "Exports to Slack / email / dashboard", "Embeds in our existing data tool".
 
    **Skip any question if already answered.** Do not repeat covered ground.
 
@@ -76,9 +76,9 @@ All rounds use `AskUserQuestion`; the API key prompt is the only additional manu
 8. Read Rounds 1–3. This round surfaces hard constraints that would invalidate a design decision if missed. Write ALL options as specific, concrete limits — not vague categories.
 9. Load `AskUserQuestion`. Ask **3 questions**, all `multiSelect: true`:
 
-   - **Data scale & performance** — how much data and how fast? E.g. for a data analyst project: "Small files, a few MB, latency doesn't matter", "Up to 100 MB CSVs, answer in under 30s", "Millions of rows — needs sampling or streaming", "Multiple users querying concurrently".
+   - **Data scale & performance** — how much data and how fast? E.g. for a data analyst agent: "Small files, a few MB, latency doesn't matter", "Up to 100 MB CSVs, answer in under 30s", "Millions of rows — needs sampling or streaming", "Multiple users querying concurrently".
    - **Privacy & data residency** — where can data go? Options: "Everything must stay on my machine / our server (no cloud LLM API calls)", "LLM API calls are OK but raw data rows must never leave", "Cloud storage and APIs are fine", "We have compliance requirements (SOC 2, GDPR, HIPAA)".
-   - **Reliability bar** — what's the quality/trust bar? Options: "Experimental / prototype — imperfect answers OK", "Production-ready — I'll act on the answers", "Needs an audit trail of what the project did and why", "Needs access control — different users see different data".
+   - **Reliability bar** — what's the quality/trust bar? Options: "Experimental / prototype — imperfect answers OK", "Production-ready — I'll act on the answers", "Needs an audit trail of what the agent did and why", "Needs access control — different users see different data".
 
 ---
 
@@ -87,9 +87,9 @@ All rounds use `AskUserQuestion`; the API key prompt is the only additional manu
 10. Read Rounds 1–4. This round covers what users need to see in order to trust and debug the project — often skipped but critical for projects that users depend on.
 11. Load `AskUserQuestion`. Ask **3–4 questions**, all `multiSelect: true`:
 
-    - **Reasoning visibility** — should users see how the project reached its answer? E.g. for a data analyst project: "No — just show me the answer", "Show me the code it ran (collapsible)", "Show me each step — what it tried, what failed, what worked", "Show me the full reasoning chain".
-    - **Usage & cost awareness** — should users know what the project is spending? E.g. for a data analyst project: "No — hide this", "Show tokens used per query", "Show estimated cost per query", "Show a running daily total".
-    - **Project health & progress** — should users see the project working? E.g. for a data analyst project: "Just a spinner is fine", "Show a step counter (Step 3 of 6)", "Show a progress bar + elapsed timer", "Stream partial answers as they arrive".
+    - **Reasoning visibility** — should users see how the agent reached its answer? E.g. for a data analyst agent: "No — just show me the answer", "Show me the code it ran (collapsible)", "Show me each step — what it tried, what failed, what worked", "Show me the full reasoning chain".
+    - **Usage & cost awareness** — should users know what the agent is spending? E.g. for a data analyst agent: "No — hide this", "Show tokens used per query", "Show estimated cost per query", "Show a running daily total".
+    - **agent health & progress** — should users see the agent working? E.g. for a data analyst agent: "Just a spinner is fine", "Show a step counter (Step 3 of 6)", "Show a progress bar + elapsed timer", "Stream partial answers as they arrive".
     - **Logging & audit** — how much should be recorded server-side? E.g.: "Nothing persistent", "Log each query and answer to a file", "Store full run history in the database with timestamps", "Full audit trail: who asked what, what code ran, what result was stored".
 
 ---

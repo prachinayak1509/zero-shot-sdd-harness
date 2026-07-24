@@ -1,6 +1,6 @@
 # UI
 
-> **Boilerplate status:** Delete this file if the project has no UI. Otherwise, filled in by the spec-writer sub-project.
+> **Boilerplate status:** Delete this file if the project has no UI. Otherwise, filled in by the spec-writer sub-agent.
 
 ---
 

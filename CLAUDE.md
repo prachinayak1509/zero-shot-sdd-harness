@@ -4,7 +4,7 @@ This is a spec-driven AI project boilerplate. Read this file first, then follow 
 
 ## What This Repo Is
 
-A starting template for building AI projects. The spec in `spec/` is either:
+A starting template for building AI agents. The spec in `spec/` is either:
 - **Partially or fully filled in** — you are implementing a project from a completed spec
 - **Empty / placeholder** — you are in the build phase; run `/zero-shot-build` to drive the spec and build
 
@@ -66,7 +66,7 @@ These are the entry points. All are manual (`disable-model-invocation: true`). E
 
 ## The skeleton in `src/`
 
-`src/` is the **opinionated baseline** — a working FastAPI + LangGraph + SQLite + Anthropic project whose capability slot is `transform_text`. Tests pass out of the box. Generators extend this in place — they never copy or rename. The capability slot is:
+`src/` is the **opinionated baseline** — a working FastAPI + LangGraph + SQLite + Anthropic agent whose capability slot is `transform_text`. Tests pass out of the box. Generators extend this in place — they never copy or rename. The capability slot is:
 
 - `src/graph/nodes.py` — `transform_text` node → replace with your capability logic
 - `src/prompts/transform.md` → replace with your system prompt
@@ -74,9 +74,9 @@ These are the entry points. All are manual (`disable-model-invocation: true`). E
 
 Everything else (graph structure, runner, API, DB session, settings, test fixtures) is already wired and tested — do not change it unless the spec requires it.
 
-## Sub-projects (the team)
+## Sub-agents (the team)
 
-`/zero-shot-build` delegates a full build to **project-builder**, which plans and coordinates the rest and owns git/PR. `/zero-shot-fix` and `/zero-shot-sync` call the workers directly (no project-builder) and own git themselves. Each project is one full, self-contained definition at `.claude/agents/<name>.md` (the path is the project slug).
+`/zero-shot-build` delegates a full build to **project-builder**, which plans and coordinates the rest and owns git/PR. `/zero-shot-fix` and `/zero-shot-sync` call the workers directly (no project-builder) and own git themselves. Each agent is one full, self-contained definition at `.claude/agents/<name>.md` (the path is the agent slug).
 
 | Project | Role | Tools |
 |-------|------|-------|
