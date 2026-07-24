@@ -77,7 +77,7 @@ For the phase named in your invocation (Phase 1 on the first invocation; the nex
 
 ## Stage 4 — Publish the test-handoff and STOP
 
-After the phase gate is VERIFIED and committed, **return a PHASE TEST-HANDOFF to the skill and STOP** — do NOT launch the server, do not start the next phase, do not ask the user. **A sub-project's background processes are cleaned up when it returns** — any server launched here will be dead by the time the user clicks the URL. The skill (root session) owns the server lifecycle and launches it after receiving the handoff. The user must never run a terminal command to test. The handoff is the build record's user-facing artefact and is **phase release notes**, structured for the skill to act on:
+After the phase gate is VERIFIED and committed, **return a PHASE TEST-HANDOFF to the skill and STOP** — do NOT launch the server, do not start the next phase, do not ask the user. **A sub-agent's background processes are cleaned up when it returns** — any server launched here will be dead by the time the user clicks the URL. The skill (root session) owns the server lifecycle and launches it after receiving the handoff. The user must never run a terminal command to test. The handoff is the build record's user-facing artefact and is **phase release notes**, structured for the skill to act on:
 
 - the **absolute project root path** (e.g. `/path/to/exp1/my-project/`) — the skill uses this to launch the server;
 - the **server run command** — always `uv run python -m src` (from the project root), plus `cd frontend && pnpm build` first if the phase has a frontend slice, plus `uv run alembic upgrade head` if the phase has migrations;

@@ -122,7 +122,7 @@ Read all prior rounds. Now ask the **technical build questions** — only genuin
 
 ## Stage 2 — Design + scaffold + build Phase 1 (delegate)
 
-Invoke the **project-builder** sub-project once with the brief and the populated `.env`. Tell it to run, in order, and return the **Phase-1 test-handoff**:
+Invoke the **project-builder** sub-agent once with the brief and the populated `.env`. Tell it to run, in order, and return the **Phase-1 test-handoff**:
 
 - **DESIGN** — spec-writer writes the full spec: vision/capabilities, `spec/architecture.md` (incl. the `## Stack` section), `spec/agent.md` (if a framework is chosen), and the phased plan in `spec/roadmap.md` under "## Phases of Development" (per phase: Goal · independent slices · key surfaces/files · the exact runnable Gate command · how the user tests it).
 - **SCAFFOLD** — branch `feature/<slug>-v0.1`, project dirs, `.env.example`, first commit + push, open the PR.
@@ -134,7 +134,7 @@ Relay only the hard blockers it escalates (e.g. a required key still missing fro
 
 Phase 1 is the smallest working win: real on the one core path, with clearly-labelled non-functional stubs for everything coming later. **Spoon-feed the user: the ONLY things they should ever do by hand are (a) put secrets in `.env` and (b) interact with the running app (click / chat). They must never run a terminal command to test.** You own the gate, the server lifecycle, and re-invocation:
 
-1. **Launch the server** (you own this — project-builder does NOT start it; sub-project background processes are cleaned up on return). The handoff includes the project root path + run command. In order from the project root:
+1. **Launch the server** (you own this — project-builder does NOT start it; sub-agent background processes are cleaned up on return). The handoff includes the project root path + run command. In order from the project root:
    a. If the phase has a frontend slice: `cd frontend && pnpm build && cd ..`
    b. If the phase has migrations: `uv run alembic upgrade head`
    c. `uv run python -m src` with `run_in_background: true`

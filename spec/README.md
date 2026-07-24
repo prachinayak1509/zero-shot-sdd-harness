@@ -14,7 +14,7 @@ Check `spec/roadmap.md` to see if the spec has been filled in. If it still conta
 spec/                 ← The product (you read & edit this)
   roadmap.md       ← Purpose, goals, success criteria, future phases
   architecture.md  ← System design, layers, data flow, and the chosen ## Stack
-  project.md         ← This agent's graph (state, nodes, edges) — if a framework is used
+  agent.md         ← This agent's graph (state, nodes, edges) — if a framework is used
   data.md          ← Data schema
   api.md           ← API surface (REST/GraphQL/CLI/etc.)
   ui.md            ← UI requirements (if any)

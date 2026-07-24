@@ -107,7 +107,7 @@ A phase is complete when ALL of the following are true:
 2. All tests for the phase pass
 3. Working tree is clean
 4. Phase test-handoff published; (build) human tested and approved
-5. qa-auditor sub-project (or manual QA checklist) has signed off
+5. qa-auditor sub-agent (or manual QA checklist) has signed off
 6. For Phase 1 specifically: `alembic upgrade head` has been run against the real DB and succeeded
 7. **README updated** — every command, env var, setup step, route, or capability this phase added is reflected in `README.md`, and every README command in scope has been run and confirmed to work from the stated directory. A stale README is a BLOCKER.
 

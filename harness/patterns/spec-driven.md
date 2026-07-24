@@ -20,7 +20,7 @@ When spec comes first:
 - Every AI session reads the same requirements
 - Tests can be derived mechanically from the spec
 - "Does this match the spec?" is a concrete, answerable question
-- Drift audits (see the `qa-auditor` sub-project, driven by `/zero-shot-sync`) can catch divergence automatically
+- Drift audits (see the `qa-auditor` sub-agent, driven by `/zero-shot-sync`) can catch divergence automatically
 
 ## What Goes in the Spec
 
