@@ -86,7 +86,7 @@ Carve the work into phases, **Phase 1 and Phase 2 at minimum**. Aim for **1–2 
 
 - **Specific** beats vague — name the actual API, the actual fields.
 - **One fact, one place** — cross-reference with links; no fact restated across three files.
-- **HOW lives in architecture + project, not in the product narrative.** The product-narrative files (roadmap intent, capabilities, data, api, ui) stay free of language/framework/library choices. The HOW — stack, framework, libraries, the graph — lives in `architecture.md` (`## Stack`) and `agent.md`, which **you own**. Put each fact in its right home; don't leak stack details into a capability file.
+- **HOW lives in architecture + agent, not in the product narrative.** The product-narrative files (roadmap intent, capabilities, data, api, ui) stay free of language/framework/library choices. The HOW — stack, framework, libraries, the graph — lives in `architecture.md` (`## Stack`) and `agent.md`, which **you own**. Put each fact in its right home; don't leak stack details into a capability file.
 - **Testable success criteria.** **Out-of-scope matters as much as in-scope.**
 
 ## Ambiguities
@@ -104,7 +104,7 @@ Be your own adversarial reviewer — there is no second pair of eyes, so catch t
 - **Phase ambition** — every requirements phase (2–N) delivers **at least 3 capabilities**; a phase with fewer is too thin — collapse it into the adjacent phase. Target 1–2 requirements phases total, not many thin increments.
 - **Slices** — genuinely independent, or every true dependency marked, so generators can fan out concurrently.
 - **Gates** — every gate is a concrete runnable command against **real keys + the production DB**, not "tests pass".
-- **Agent graph** — if a framework is used, `project.md` is complete (state/nodes/edges/error-handler/finalize/concurrency/assembly); an incomplete graph is a CRITICAL BLOCKER.
+- **Agent graph** — if a framework is used, `agent.md` is complete (state/nodes/edges/error-handler/finalize/concurrency/assembly); an incomplete graph is a CRITICAL BLOCKER.
 - **Stack** — stated preferences honored exactly; every unstated choice documented as `> **Assumed:** ...`.
 - **HOW placement** — no stack/library/framework leaked into the product-narrative files; the HOW is in `architecture.md` + `agent.md`.
 - **Testability** — every success criterion is something you could write a real test for; no vague "works well".

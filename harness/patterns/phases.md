@@ -56,7 +56,7 @@ If the spec's agent graph needs more than the base ReAct loop, add a phase to up
 - Add error handling to all external calls: try/except, retries, timeouts. Agent continues (degraded, not crashed) on non-critical failures.
 - **Gate (all must pass):**
   1. Every pattern listed in `spec/agent.md` beyond the base loop is wired and exercised by a real test
-  2. Project handles all documented failure modes without crashing
+  2. Agent handles all documented failure modes without crashing
 
 ---
 

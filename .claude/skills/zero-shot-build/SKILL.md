@@ -25,7 +25,7 @@ All rounds use `AskUserQuestion`; the API key prompt is the only additional manu
 
 **Precondition: you already have the user's idea as their own free text** (from `$ARGUMENTS` or the plain-text prompt above). Never use `AskUserQuestion` to generate or propose the idea itself.
 
-**The cardinal rule across ALL five rounds: every question and every option must be specific to THIS idea.** After Round 1 you know the idea category — use it. For a data analyst project, Round 2 options should be things like "persistent sessions with conversation history" and "multi-file joins across uploaded datasets" — not generic buckets like "stateful" or "multi-entity". A user must instantly recognise every option as being about their thing. Generic options are a failure.
+**The cardinal rule across ALL five rounds: every question and every option must be specific to THIS idea.** After Round 1 you know the idea category — use it. For a data analyst agent, Round 2 options should be things like "persistent sessions with conversation history" and "multi-file joins across uploaded datasets" — not generic buckets like "stateful" or "multi-entity". A user must instantly recognise every option as being about their thing. Generic options are a failure.
 
 ---
 

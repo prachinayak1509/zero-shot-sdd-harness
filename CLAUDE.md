@@ -4,7 +4,7 @@ This is a spec-driven AI agent boilerplate. Read this file first, then follow th
 
 ## What This Repo Is
 
-A starting template for building AI agents. The spec in `spec/` is either:
+A starting template for building AI projects. The spec in `spec/` is either:
 - **Partially or fully filled in** — you are implementing a project from a completed spec
 - **Empty / placeholder** — you are in the build phase; run `/zero-shot-build` to drive the spec and build
 
